@@ -101,3 +101,21 @@ export async function getRandomSentenceFromDb() {
 
   return null;
 }
+
+export async function listSimplifiedSentencesFromDb(offset=0, limit=10) {
+  const q = `
+    SELECT
+      id, userId, originalSentence, simplifiedSentence, verified, created, updated
+    FROM
+      simplifiedSentences
+    OFFSET $1 LIMIT $2
+  `;
+
+  let result = await query(q, [offset, limit]);
+
+  if (result) {
+    return result.rows;
+  }
+
+  return null;
+}

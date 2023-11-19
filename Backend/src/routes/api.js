@@ -1,6 +1,6 @@
 import express from 'express';
 import { catchErrors } from '../lib/catch-errors.js';
-import { listSentences, getRandomSentence } from './sentences.js';
+import { listSentences, getRandomSentence, listSimplifiedSentences } from './sentences.js';
 
 
 export const router = express.Router();
@@ -63,3 +63,4 @@ export async function index(req, res) {
 router.get('/', index);
 router.get('/sentences', catchErrors(listSentences));
 router.get('/sentences/sentence', catchErrors(getRandomSentence));
+router.get('/sentences/simplified', catchErrors(listSimplifiedSentences));
