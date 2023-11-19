@@ -1,4 +1,7 @@
 import express from 'express';
+import { catchErrors } from '../lib/catch-errors.js';
+import { listSentences } from './sentences.js';
+
 
 export const router = express.Router();
 
@@ -9,6 +12,10 @@ export async function index(req, res) {
           href: '/sentences',
           methods: ['GET'],
         },
+        sentence: {
+            href: '/sentences/sentence',
+            methods: ['GET'],
+          },
         simplifiedSentences: {
           href: '/sentences/simplified',
           methods: ['GET'],
@@ -50,3 +57,4 @@ export async function index(req, res) {
 }
 
 router.get('/', index);
+router.get('/sentences', catchErrors(listSentences));

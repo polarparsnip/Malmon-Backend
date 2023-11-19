@@ -61,3 +61,22 @@ export async function dropSchema(dropFile = DROP_SCHEMA_FILE) {
 
   return query(data.toString('utf-8'));
 }
+
+
+export async function listSentencesFromDb(offset=0, limit=10) {
+  const q = `
+    SELECT
+      id, sentence, created, updated
+    FROM
+      sentences
+    OFFSET $1 LIMIT $2
+  `;
+
+  let result = await query(q, [offset, limit]);
+
+  if (result) {
+    return result.rows;
+  }
+
+  return null;
+}
