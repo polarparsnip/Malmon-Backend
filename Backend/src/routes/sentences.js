@@ -1,4 +1,13 @@
-import { listSentencesFromDb, getRandomSentenceFromDb, listSimplifiedSentencesFromDb } from '../lib/db.js'
+import { 
+    listSentencesFromDb, 
+    getRandomSentenceFromDb, 
+    listSimplifiedSentencesFromDb, 
+    getSentenceFromDb, 
+    findByUserId, 
+    getSimplifiedSentenceFromDb, 
+    deleteSentenceFromDb, 
+    deleteSimplifiedSentenceFromDb
+} from '../lib/db.js'
 
 
 export async function listSentences(req, res) {
@@ -34,6 +43,32 @@ export async function listSentences(req, res) {
     }
 
     return res.status(200).json(result);
+}
+
+export async function deleteSentence(req, res) {
+    const { id: userId } = req.user;
+    console.log(req.user)
+    const { sentenceId } = req.params;
+
+    const user = await findByUserId(userId);
+
+    if (!user.admin) {
+        return res.status(401).json({ error: 'not admin' });
+    }
+
+    const sentence = await getSentenceFromDb(sentenceId);
+
+    if (!sentence) {
+        return res.status(404).json({});
+    }
+
+    const result = await deleteSentenceFromDb(sentence.id);
+
+    if (result) {
+        return res.status(200).json({});
+    }
+    
+    return res.status(400).json({ error: 'unable to delete sentence' });
 }
 
 export async function getRandomSentence(req, res) {
@@ -79,4 +114,29 @@ export async function listSimplifiedSentences(req, res) {
     }
 
     return res.status(200).json(result);
+}
+
+export async function deleteSimplifiedSentence(req, res) {
+    const { id: userId } = req.user;
+    const { sentenceId } = req.params;
+
+    const user = await findByUserId(userId);
+    
+    if (!user.admin) {
+        return res.status(401).json({ error: 'not admin' });
+    }
+
+    const sentence = await getSimplifiedSentenceFromDb(sentenceId);
+
+    if (!sentence) {
+        return res.status(404).json({});
+    }
+
+    const result = await deleteSimplifiedSentenceFromDb(sentence.id);
+    
+    if (result) {
+        return res.status(200).json({});
+    }
+    
+    return res.status(400).json({ error: 'unable to delete simplified sentence' });
 }

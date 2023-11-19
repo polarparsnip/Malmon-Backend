@@ -1,8 +1,8 @@
 import express from 'express';
 import { catchErrors } from '../lib/catch-errors.js';
-import { listSentences, getRandomSentence, listSimplifiedSentences } from './sentences.js';
-import { listUsers, loginRoute, registerUser, showCurrentUser } from './users.js';
-import { requireAuthentication } from './passport.js';
+import { listSentences, getRandomSentence, listSimplifiedSentences, deleteSentence, deleteSimplifiedSentence } from './sentences.js';
+import { deleteUser, listUsers, loginRoute, registerUser, showCurrentUser } from './users.js';
+import { ensureAdmin, requireAuthentication } from './passport.js';
 
 
 export const router = express.Router();
@@ -48,15 +48,15 @@ export async function index(req, res) {
       admin: {
         sentences: {
           href: '/admin/sentences',
-          methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+          methods: ['POST', 'PATCH', 'DELETE'],
         },
         simplifiedSentences: {
             href: '/admin/sentences/simplified',
-            methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+            methods: ['DELETE'],
         },
         users: {
             href: '/admin/users',
-            methods: ['GET', 'DELETE'],
+            methods: ['DELETE'],
         },
       }
     });
@@ -82,3 +82,12 @@ router.get('/users/logout', async (req, res, next) => {
       return res.status(200).json('logout successful');
     });
 });
+
+// Admin routes
+// router.post('/admin/sentences', requireAuthentication, ensureAdmin, catchErrors(listSentences));
+// router.patch('/admin/sentences', requireAuthentication, ensureAdmin, catchErrors(listSentences));
+router.delete('/admin/sentences/:sentenceId', requireAuthentication, ensureAdmin, catchErrors(deleteSentence));
+
+router.delete('/admin/sentences/simplified/:sentenceId', requireAuthentication, ensureAdmin, catchErrors(deleteSimplifiedSentence));
+
+router.delete('/admin/users/:userId', requireAuthentication, ensureAdmin, catchErrors(deleteUser));

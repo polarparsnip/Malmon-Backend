@@ -1,6 +1,6 @@
 import passport from 'passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { findUserById } from '../lib/db.js';
+import { findByUserId } from '../lib/db.js';
 
 const { JWT_SECRET: jwtSecret, TOKEN_LIFETIME: tokenLifetime = 3600 } = process.env;
 
@@ -11,13 +11,23 @@ if (!jwtSecret) {
 
 async function strat(data, next) {
   // fáum id gegnum data sem geymt er í token
-  const user = await findUserById(data.id);
+  const user = await findByUserId(data.id);
 
   if (user) {
     next(null, user);
   } else {
     next(null, false);
   }
+}
+
+export function ensureAdmin(req, res, next) {
+  if (req.isAuthenticated() && req.user?.admin) {
+    return next();
+  }
+
+  const title = 'Síða fannst ekki';
+  return res.status(404).json({ error: title });
+
 }
 
 export function requireAuthentication(req, res, next) {
@@ -38,6 +48,7 @@ export function requireAuthentication(req, res, next) {
     return next();
   })(req, res, next);
 }
+
 
 export const tokenOptions = { expiresIn: parseInt(tokenLifetime, 10) };
 

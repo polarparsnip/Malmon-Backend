@@ -87,6 +87,24 @@ export async function listSentencesFromDb(offset=0, limit=10) {
   return null;
 }
 
+export async function getSentenceFromDb(sentenceId) {
+  const q = `
+    SELECT
+      id, sentence, simplified, created, updated
+    FROM
+      sentences
+    WHERE id = $1
+  `;
+
+  const result = await query(q, [sentenceId]);
+
+  if (result && result.rowCount === 1) {
+    return result.rows[0];
+  }
+
+  return null;
+}
+
 export async function getRandomSentenceFromDb() {
   const q = `
     SELECT 
@@ -108,10 +126,31 @@ export async function getRandomSentenceFromDb() {
   return null;
 }
 
+export async function deleteSentenceFromDb(sentenceId) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const deleteSimplified = 'DELETE FROM simplifiedSentences WHERE sentenceId = $1';
+    await client.query(deleteSimplified, [sentenceId]);
+
+    const deleteSentenceQuery = 'DELETE FROM sentences WHERE id = $1';
+    await client.query(deleteSentenceQuery, [sentenceId]);
+    await client.query('COMMIT');
+
+    return true;
+  } catch (e) {
+    await client.query('ROLLBACK');
+    console.error('unable to delete sentence', e);
+    return false;
+  } finally {
+    client.release();
+  }
+}
+
 export async function listSimplifiedSentencesFromDb(offset=0, limit=10) {
   const q = `
     SELECT
-      id, userId, originalSentence, simplifiedSentence, verified, created, updated
+      id, userId, sentenceId, simplifiedSentence, verified, created, updated
     FROM
       simplifiedSentences
     OFFSET $1 LIMIT $2
@@ -121,6 +160,36 @@ export async function listSimplifiedSentencesFromDb(offset=0, limit=10) {
 
   if (result) {
     return result.rows;
+  }
+
+  return null;
+}
+
+export async function getSimplifiedSentenceFromDb(sentenceId) {
+  const q = `
+    SELECT
+      id, userId, sentenceId, simplifiedSentence, verified, created, updated
+    FROM
+      simplifiedSentences
+    WHERE id = $1
+  `;
+
+  const result = await query(q, [sentenceId]);
+
+  if (result && result.rowCount === 1) {
+    return result.rows[0];
+  }
+
+  return null;
+}
+
+export async function deleteSimplifiedSentenceFromDb(sentenceId) {
+  const q = 'DELETE FROM simplifiedSentences WHERE id = $1';
+
+  const result = await query(q, [sentenceId]);
+
+  if (result && result.rowCount >= 1) {
+    return true;
   }
 
   return null;
@@ -160,7 +229,7 @@ export async function findByUsername(username) {
   return false;
 }
 
-export async function findUserById(id) {
+export async function findByUserId(id) {
   const q = 'SELECT * FROM users WHERE id = $1';
 
   try {
@@ -204,6 +273,18 @@ export async function createUser(name, username, password) {
   }
 
   console.warn('unable to create user');
+
+  return null;
+}
+
+export async function deleteUserFromDb(userId) {
+  const q = 'DELETE FROM users WHERE id = $1';
+
+  const result = await query(q, [userId]);
+
+  if (result && result.rowCount >= 1) {
+    return true;
+  }
 
   return null;
 }

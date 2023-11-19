@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { jwtOptions, tokenOptions } from './passport.js'
-import { comparePasswords, createUser, findByUsername, findUserById, listUsersFromDb } from "../lib/db.js";
+import { comparePasswords, createUser, findByUsername, findByUserId, listUsersFromDb, deleteUserFromDb } from "../lib/db.js";
 
 export async function listUsers(req, res) {
     let { offset = 0, limit = 10 } = req.query;
@@ -65,7 +65,7 @@ export async function loginRoute(req, res) {
 export async function showCurrentUser(req, res) {
     const { user: { id } = {} } = req;
   
-    const user = await findUserById(id);
+    const user = await findByUserId(id);
   
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -121,3 +121,29 @@ export async function registerUser(req, res) {
 
   return res.status(201).json(user);
 }
+
+export async function deleteUser(req, res) {
+  const { id: userId } = req.user;
+  const { userId: userToBeDeletedId } = req.params;
+
+  const user = await findByUserId(userId);
+    
+  if (!user.admin) {
+    return res.status(401).json({ error: 'not admin' });
+  }
+
+  const userToBeDeleted = await findByUserId(userToBeDeletedId);
+
+  if (!userToBeDeleted) {
+    return res.status(404).json({});
+  }
+
+  const result = await deleteUserFromDb(userToBeDeleted.id);
+    
+  if (result) {
+    return res.status(200).json({});
+  }
+    
+  return res.status(400).json({ error: 'unable to delete user' });
+}
+  
