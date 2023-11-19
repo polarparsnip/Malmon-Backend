@@ -62,6 +62,7 @@ export async function dropSchema(dropFile = DROP_SCHEMA_FILE) {
   return query(data.toString('utf-8'));
 }
 
+// Sentence Queries
 
 export async function listSentencesFromDb(offset=0, limit=10) {
   const q = `
@@ -108,6 +109,28 @@ export async function listSimplifiedSentencesFromDb(offset=0, limit=10) {
       id, userId, originalSentence, simplifiedSentence, verified, created, updated
     FROM
       simplifiedSentences
+    OFFSET $1 LIMIT $2
+  `;
+
+  let result = await query(q, [offset, limit]);
+
+  if (result) {
+    return result.rows;
+  }
+
+  return null;
+}
+
+
+// User queries
+
+export async function listUsersFromDb(offset=0, limit=10) {
+  const q = `
+    SELECT
+      id, name, username, admin, completedSentences, completedVerifications, created
+    FROM
+      users
+    ORDER BY id ASC
     OFFSET $1 LIMIT $2
   `;
 
