@@ -126,6 +126,24 @@ export async function getRandomSentenceFromDb() {
   return null;
 }
 
+export async function addSentenceToDb(sentence) {
+  const q = `
+    INSERT INTO sentences
+      (sentence)
+    VALUES
+      ($1)
+    RETURNING id, sentence, simplified, created;
+  `;
+
+  const result = await query(q, [sentence]);
+
+  if (result && result.rowCount === 1) {
+    return result.rows[0];
+  }
+
+  return null;
+}
+
 export async function deleteSentenceFromDb(sentenceId) {
   const client = await pool.connect();
   try {
@@ -287,4 +305,36 @@ export async function deleteUserFromDb(userId) {
   }
 
   return null;
+}
+
+
+export async function conditionalUpdate(table, id, fields, values) {
+  const filteredFields = fields.filter((i) => typeof i === 'string');
+  const filteredValues = values.filter(
+    (i) => typeof i === 'string' || typeof i === 'number' || i instanceof Date
+  );
+
+  if (filteredFields.length === 0) {
+    return false;
+  }
+
+  if (filteredFields.length !== filteredValues.length) {
+    throw new Error('fields and values must be of equal length');
+  }
+
+  // id is field = 1
+  const updates = filteredFields.map((field, i) => `${field} = $${i + 2}`);
+
+  const q = `
+    UPDATE ${table}
+      SET ${updates.join(', ')}
+    WHERE
+      id = $1
+    RETURNING *
+    `;
+  
+  const queryValues = [id].concat(filteredValues);
+  const result = await query(q, queryValues);
+
+  return result;
 }

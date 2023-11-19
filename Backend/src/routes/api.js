@@ -1,6 +1,14 @@
 import express from 'express';
 import { catchErrors } from '../lib/catch-errors.js';
-import { listSentences, getRandomSentence, listSimplifiedSentences, deleteSentence, deleteSimplifiedSentence } from './sentences.js';
+import { 
+    listSentences, 
+    getRandomSentence, 
+    listSimplifiedSentences, 
+    deleteSentence, 
+    deleteSimplifiedSentence, 
+    updateSentence, 
+    createSentence 
+} from './sentences.js';
 import { deleteUser, listUsers, loginRoute, registerUser, showCurrentUser } from './users.js';
 import { ensureAdmin, requireAuthentication } from './passport.js';
 
@@ -84,8 +92,8 @@ router.get('/users/logout', async (req, res, next) => {
 });
 
 // Admin routes
-// router.post('/admin/sentences', requireAuthentication, ensureAdmin, catchErrors(listSentences));
-// router.patch('/admin/sentences', requireAuthentication, ensureAdmin, catchErrors(listSentences));
+router.post('/admin/sentences', requireAuthentication, ensureAdmin, catchErrors(createSentence));
+router.patch('/admin/sentences/:sentenceId', requireAuthentication, ensureAdmin, catchErrors(updateSentence));
 router.delete('/admin/sentences/:sentenceId', requireAuthentication, ensureAdmin, catchErrors(deleteSentence));
 
 router.delete('/admin/sentences/simplified/:sentenceId', requireAuthentication, ensureAdmin, catchErrors(deleteSimplifiedSentence));
