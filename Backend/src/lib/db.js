@@ -80,3 +80,24 @@ export async function listSentencesFromDb(offset=0, limit=10) {
 
   return null;
 }
+
+export async function getRandomSentenceFromDb() {
+  const q = `
+    SELECT 
+      * 
+    FROM 
+      sentences 
+    WHERE 
+      simplified = FALSE
+    ORDER BY RANDOM()
+    LIMIT 1;
+  `;
+
+  const result = await query(q);
+
+  if (result && result.rowCount === 1) {
+    return result.rows[0];
+  }
+
+  return null;
+}

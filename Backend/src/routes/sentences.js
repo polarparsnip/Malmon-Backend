@@ -1,10 +1,7 @@
-import { listSentencesFromDb } from '../lib/db.js'
+import { listSentencesFromDb, getRandomSentenceFromDb } from '../lib/db.js'
 
 
 export async function listSentences(req, res) {
-    const { user } = req;
-    console.log(user);
-
     let { offset = 0, limit = 10 } = req.query;
     offset = Number(offset);
     limit = Number(limit);
@@ -37,4 +34,14 @@ export async function listSentences(req, res) {
     }
 
     return res.status(200).json(result);
+}
+
+export async function getRandomSentence(req, res) {
+    const randomSentence = await getRandomSentenceFromDb();
+  
+    if (!randomSentence) {
+        return res.status(404).json({ error: 'unable to get sentence' });
+    }
+  
+    return res.status(200).json(randomSentence);
 }

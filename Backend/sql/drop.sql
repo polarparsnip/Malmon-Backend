@@ -1,3 +1,3 @@
 DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS sentences;
 DROP TABLE IF EXISTS simplifiedSentences;
+DROP TABLE IF EXISTS sentences;

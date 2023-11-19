@@ -12,6 +12,7 @@ CREATE TABLE public.users (
 CREATE TABLE public.sentences (
   id SERIAL PRIMARY KEY,
   sentence TEXT NOT NULL UNIQUE,
+  simplified BOOLEAN DEFAULT false,
   created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -26,3 +27,5 @@ CREATE TABLE public.simplifiedSentences (
   updated TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_originalSentence FOREIGN KEY (originalSentence) REFERENCES sentences (sentence)
 );
+
+CREATE INDEX idx_userId ON public.simplifiedSentences (userId);
