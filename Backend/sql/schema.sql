@@ -1,0 +1,28 @@
+CREATE TABLE public.users (
+  id serial primary key,
+  name VARCHAR(64) NOT NULL,
+  username VARCHAR(64) NOT NULL UNIQUE,
+  password VARCHAR(256) NOT NULL,
+  admin BOOLEAN DEFAULT false,
+  completedSentences INTEGER DEFAULT 0,
+  completedVerifications INTEGER DEFAULT 0,
+  created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp
+);
+
+CREATE TABLE public.sentences (
+  id SERIAL PRIMARY KEY,
+  sentence TEXT NOT NULL UNIQUE,
+  created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE public.simplifiedSentences (
+  id SERIAL PRIMARY KEY,
+  userId VARCHAR(64) NOT NULL UNIQUE,
+  originalSentence TEXT,
+  simplifiedSentence TEXT NOT NULL,
+  verified BOOLEAN DEFAULT false,
+  created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_originalSentence FOREIGN KEY (originalSentence) REFERENCES sentences (sentence)
+);
