@@ -1,7 +1,7 @@
 import express from 'express';
 import { catchErrors } from '../lib/catch-errors.js';
 import { listSentences, getRandomSentence, listSimplifiedSentences } from './sentences.js';
-import { listUsers, loginRoute, showCurrentUser } from './users.js';
+import { listUsers, loginRoute, registerUser, showCurrentUser } from './users.js';
 import { requireAuthentication } from './passport.js';
 
 
@@ -28,9 +28,13 @@ export async function index(req, res) {
           href: '/users',
           methods: ['GET'],
         },
+        me: {
+            href: '/users/me',
+            methods: ['GET'],
+        },
         register: {
           href: '/users/register',
-          methods: ['GET', 'POST'],
+          methods: ['POST'],
         },
         login: {
           href: '/users/login',
@@ -39,10 +43,6 @@ export async function index(req, res) {
         logout: {
             href: '/users/logout',
             methods: ['GET'],
-        },
-        me: {
-          href: '/users/me',
-          methods: ['GET'],
         },
       },
       admin: {
@@ -70,8 +70,9 @@ router.get('/sentences/simplified', catchErrors(listSimplifiedSentences));
 
 //User routes
 router.get('/users', catchErrors(listUsers));
-router.post('/users/login', catchErrors(loginRoute));
 router.get('/users/me', requireAuthentication, catchErrors(showCurrentUser));
+router.post('/users/register', catchErrors(registerUser));
+router.post('/users/login', catchErrors(loginRoute));
 router.get('/users/logout', async (req, res, next) => {
     req.logout((err) => {
       if (err) {

@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { jwtOptions, tokenOptions } from './passport.js'
-import { comparePasswords, findByUsername, findUserById, listUsersFromDb } from "../lib/db.js";
+import { comparePasswords, createUser, findByUsername, findUserById, listUsersFromDb } from "../lib/db.js";
 
 export async function listUsers(req, res) {
     let { offset = 0, limit = 10 } = req.query;
@@ -74,4 +74,50 @@ export async function showCurrentUser(req, res) {
     delete user.password;
   
     return res.json(user);
+}
+
+export async function validateUser(name, username, password) {
+  if (typeof name !== 'string' || name.length < 2 || username.length > 64) {
+    return 'Skrá þarf nafn. Lágmark 2 stafir og hámark 64 stafir';
+  }
+
+  if (typeof username !== 'string' || username.length < 2 || username.length > 64) {
+    return 'Skrá þarf notendanafn. Lágmark 2 stafir og hámark 64 stafir';
+  }
+
+  const user = await findByUsername(username);
+
+  if (user === null) {
+    return 'Gat ekki athugað notendanafn';
+  }
+
+  if (user) {
+    return 'Notendanafn er þegar skráð';
+  }
+
+  if (typeof password !== 'string' || password.length < 3 || username.length > 256) {
+    return 'Skrá þarf lykilorð. Lágmark 3 stafir';
+  }
+
+  return null;
+}
+
+export async function registerUser(req, res) {
+  const { name, username, password } = req.body;
+
+  const validationMessage = await validateUser(name, username, password);
+
+  if (validationMessage) {
+    return res.status(400).json(validationMessage);
+  }
+
+  const user = await createUser(name, username, password);
+
+  if (!user) {
+      return res.status(400).json({ error: 'could not create user' });
+  }
+  
+  delete user.password;
+
+  return res.status(201).json(user);
 }

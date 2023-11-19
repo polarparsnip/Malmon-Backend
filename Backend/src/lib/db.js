@@ -1,10 +1,14 @@
 import dotenv from 'dotenv';
 import { readFile } from 'fs/promises';
 import pg from 'pg';
+import xss from 'xss';
 import bcrypt from 'bcrypt';
 
 
 dotenv.config();
+
+const { BCRYPT_ROUNDS: bcryptRounds = 11 } = process.env;
+
 
 const SCHEMA_FILE = './Backend/sql/schema.sql';
 const DROP_SCHEMA_FILE = './Backend/sql/drop.sql';
@@ -180,4 +184,26 @@ export async function comparePasswords(password, hash) {
   }
 
   return false;
+}
+
+export async function createUser(name, username, password) {
+  const hashedPassword = await bcrypt.hash(password, parseInt(bcryptRounds, 10));
+
+  const q = `
+    INSERT INTO
+      users (name, username, password)
+    VALUES ($1, $2, $3)
+    RETURNING *
+  `;
+
+  const values = [xss(name), xss(username), hashedPassword];
+  const result = await query(q, values);
+
+  if (result) {
+    return result.rows[0];
+  }
+
+  console.warn('unable to create user');
+
+  return null;
 }
