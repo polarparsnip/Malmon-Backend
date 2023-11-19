@@ -1,7 +1,8 @@
 import express from 'express';
 import { catchErrors } from '../lib/catch-errors.js';
 import { listSentences, getRandomSentence, listSimplifiedSentences } from './sentences.js';
-import { listUsers } from '../lib/users.js';
+import { listUsers, loginRoute, showCurrentUser } from './users.js';
+import { requireAuthentication } from './passport.js';
 
 
 export const router = express.Router();
@@ -33,7 +34,7 @@ export async function index(req, res) {
         },
         login: {
           href: '/users/login',
-          methods: ['GET', 'POST'],
+          methods: ['POST'],
         },
         logout: {
             href: '/users/logout',
@@ -69,3 +70,14 @@ router.get('/sentences/simplified', catchErrors(listSimplifiedSentences));
 
 //User routes
 router.get('/users', catchErrors(listUsers));
+router.post('/users/login', catchErrors(loginRoute));
+router.get('/users/me', requireAuthentication, catchErrors(showCurrentUser));
+router.get('/users/logout', async (req, res, next) => {
+    req.logout((err) => {
+      if (err) {
+        // return next(err);
+        return res.status(500).json({ error: err });
+      }
+      return res.status(200).json('logout successful');
+    });
+});

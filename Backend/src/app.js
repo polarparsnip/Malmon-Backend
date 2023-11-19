@@ -1,5 +1,7 @@
 import dotenv from 'dotenv';
 import express from 'express';
+import session from 'express-session';
+import passport from './routes/passport.js';
 import { cors } from './lib/cors.js';
 import { router } from './routes/api.js';
 
@@ -18,11 +20,21 @@ if (!connectionString || !sessionSecret) {
 
 const app = express();
 app.use(express.json());
+
+app.use(
+  session({
+    secret: sessionSecret,
+    resave: false,
+    saveUninitialized: false,
+    maxAge: 20 * 1000, // 20 sek
+  })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use(cors);
-
 app.use(router);
-
-// const port = process.env.PORT || 3000;
 
 
 /** Middleware sem sér um 404 villur. */

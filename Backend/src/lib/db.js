@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import { readFile } from 'fs/promises';
 import pg from 'pg';
+import bcrypt from 'bcrypt';
 
 
 dotenv.config();
@@ -141,4 +142,42 @@ export async function listUsersFromDb(offset=0, limit=10) {
   }
 
   return null;
+}
+
+export async function findByUsername(username) {
+  const q = 'SELECT * FROM users WHERE username = $1';
+
+  const result = await query(q, [username]);
+
+  if (result && result.rowCount === 1) {
+    return result.rows[0];
+  }
+
+  return false;
+}
+
+export async function findUserById(id) {
+  const q = 'SELECT * FROM users WHERE id = $1';
+
+  try {
+    const result = await query(q, [id]);
+
+    if (result.rowCount === 1) {
+      return result.rows[0];
+    }
+  } catch (e) {
+    console.error('Gat ekki fundið notanda eftir id');
+  }
+
+  return null;
+}
+
+export async function comparePasswords(password, hash) {
+  try {
+    return await bcrypt.compare(password, hash);
+  } catch (e) {
+    console.error('Gat ekki borið saman lykilorð', e);
+  }
+
+  return false;
 }
