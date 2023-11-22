@@ -1,8 +1,8 @@
+import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 import { readFile } from 'fs/promises';
 import pg from 'pg';
 import xss from 'xss';
-import bcrypt from 'bcrypt';
 
 
 dotenv.config();
@@ -69,6 +69,26 @@ export async function dropSchema(dropFile = DROP_SCHEMA_FILE) {
 
 // Sentence Queries
 
+export async function listAllSimplifiedSentencesFromDb(verified=true) {
+  const q = `
+    SELECT
+      sentences.sentence, simplifiedSentences.simplifiedSentence
+    FROM
+      sentences, simplifiedSentences
+    WHERE sentences.simplified = true
+    AND simplifiedSentences.verified = $1
+    AND sentences.id = simplifiedSentences.sentenceId
+  `;
+
+  let result = await query(q, [verified]);
+
+  if (result) {
+    return result.rows;
+  }
+
+  return null;
+}
+
 export async function listSentencesFromDb(offset=0, limit=10) {
   const q = `
     SELECT
@@ -112,9 +132,9 @@ export async function getRandomSentenceFromDb() {
     FROM 
       sentences 
     WHERE 
-      simplified = FALSE
+      simplified = false
     ORDER BY RANDOM()
-    LIMIT 1;
+    LIMIT 1
   `;
 
   const result = await query(q);
@@ -132,7 +152,7 @@ export async function addSentenceToDb(sentence) {
       (sentence)
     VALUES
       ($1)
-    RETURNING id, sentence, simplified, created;
+    RETURNING id, sentence, simplified, created
   `;
 
   const result = await query(q, [sentence]);
@@ -216,15 +236,37 @@ export async function deleteSimplifiedSentenceFromDb(sentenceId) {
 
 // User queries
 
-export async function listUsersFromDb(offset=0, limit=10) {
-  const q = `
-    SELECT
-      id, name, username, admin, completedSentences, completedVerifications, created
-    FROM
-      users
-    ORDER BY id ASC
-    OFFSET $1 LIMIT $2
-  `;
+export async function listUsersFromDb(order='default', offset=0, limit=10) {
+  let q;
+  
+  if (order == 'sentences') {
+    q = `
+      SELECT
+        id, name, username, admin, completedSentences, completedVerifications, created
+      FROM
+        users
+      ORDER BY completedSentences DESC
+      OFFSET $1 LIMIT $2
+    `;
+  } else if (order == 'verifications') {
+    q = `
+      SELECT
+        id, name, username, admin, completedSentences, completedVerifications, created
+      FROM
+        users
+      ORDER BY completedVerifications DESC
+      OFFSET $1 LIMIT $2
+    `;
+  } else {
+    q = `
+      SELECT
+        id, name, username, admin, completedSentences, completedVerifications, created
+      FROM
+        users
+      ORDER BY id ASC
+      OFFSET $1 LIMIT $2
+    `;
+  }
 
   let result = await query(q, [offset, limit]);
 

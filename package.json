@@ -12,7 +12,7 @@
     "start:frontend": "dotenv -e .env node ./Frontend/src/app.js",
     "start": "concurrently npm:start:*",
     "setup": "dotenv -e .env node ./Backend/src/setup.js",
-    "lint": "eslint ./src/**/*.js"
+    "lint": "eslint ./**/*.js"
   },
   "keywords": [],
   "author": "",

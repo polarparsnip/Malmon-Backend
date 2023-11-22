@@ -5,4 +5,5 @@ dist
 *.log
 .env
 .env.test
+.vscode
 Backend/sql/insert.sql

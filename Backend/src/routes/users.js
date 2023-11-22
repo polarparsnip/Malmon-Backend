@@ -1,79 +1,85 @@
 import jwt from 'jsonwebtoken';
-import { jwtOptions, tokenOptions } from './passport.js'
-import { comparePasswords, createUser, findByUsername, findByUserId, listUsersFromDb, deleteUserFromDb } from "../lib/db.js";
+import {
+  comparePasswords,
+  createUser,
+  deleteUserFromDb,
+  findByUserId,
+  findByUsername,
+  listUsersFromDb
+} from '../lib/db.js';
+import { jwtOptions, tokenOptions } from './passport.js';
 
 export async function listUsers(req, res) {
-    let { offset = 0, limit = 10 } = req.query;
-    offset = Number(offset);
-    limit = Number(limit);
-  
-    const users = await listUsersFromDb(offset, limit);
+  let { order = 'default', offset = 0, limit = 10 } = req.query;
+  offset = Number(offset);
+  limit = Number(limit);
+
+  const users = await listUsersFromDb(order, offset, limit);
     
-    if (!users) {
-      return res.status(404).json({ error: 'unable to list users' });
-    }
+  if (!users) {
+    return res.status(404).json({ error: 'unable to list users' });
+  }
   
-    const result = {
-      _links: {
-        self: {
-          href: `/users/?offset=${offset}&limit=${limit}`,
-        },
+  const result = {
+    _links: {
+      self: {
+        href: `/users/?order=${order}&offset=${offset}&limit=${limit}`,
       },
-      users,
+    },
+    users,
+  };
+  
+  if (offset > 0) {
+    result._links.prev = {
+      href: `/users/?order=${order}&offset=${offset - limit}&limit=${limit}`,
     };
+  }
   
-    if (offset > 0) {
-      result._links.prev = {
-        href: `/users/?offset=${offset - limit}&limit=${limit}`,
-      };
-    }
+  if (users.length === limit) {
+    result._links.next = {
+      href: `/users/?order=${order}&offset=${Number(offset) + limit}&limit=${limit}`,
+    };
+  }
   
-    if (users.length === limit) {
-      result._links.next = {
-        href: `/users/?offset=${Number(offset) + limit}&limit=${limit}`,
-      };
-    }
-  
-    return res.status(200).json(result);
+  return res.status(200).json(result);
 }
 
 export async function loginRoute(req, res) {
-    const { username, password = '' } = req.body;
+  const { username, password = '' } = req.body;
   
-    const user = await findByUsername(username);
+  const user = await findByUsername(username);
   
-    if (!user) {
-      return res.status(401).json({ error: 'Invalid user/password' });
-    }
-  
-    const passwordIsCorrect = await comparePasswords(password, user.password);
-  
-    if (passwordIsCorrect) {
-      const payload = { id: user.id };
-      const token = jwt.sign(payload, jwtOptions.secretOrKey, tokenOptions);
-      delete user.password;
-      return res.status(200).json({
-        user,
-        token,
-        expiresIn: tokenOptions.expiresIn,
-      });
-    }
-  
+  if (!user) {
     return res.status(401).json({ error: 'Invalid user/password' });
+  }
+  
+  const passwordIsCorrect = await comparePasswords(password, user.password);
+  
+  if (passwordIsCorrect) {
+    const payload = { id: user.id };
+    const token = jwt.sign(payload, jwtOptions.secretOrKey, tokenOptions);
+    delete user.password;
+    return res.status(200).json({
+      user,
+      token,
+      expiresIn: tokenOptions.expiresIn,
+    });
+  }
+  return res.status(401).json({ error: 'Invalid user/password' });
 }
 
 export async function showCurrentUser(req, res) {
-    const { user: { id } = {} } = req;
+  const { user: { id } = {} } = req;
   
-    const user = await findByUserId(id);
+  const user = await findByUserId(id);
   
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
   
-    delete user.password;
+  delete user.password;
   
-    return res.json(user);
+  return res.json(user);
 }
 
 export async function validateUser(name, username, password) {

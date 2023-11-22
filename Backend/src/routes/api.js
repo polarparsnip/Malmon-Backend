@@ -1,16 +1,17 @@
 import express from 'express';
 import { catchErrors } from '../lib/catch-errors.js';
-import { 
-    listSentences, 
-    getRandomSentence, 
-    listSimplifiedSentences, 
-    deleteSentence, 
-    deleteSimplifiedSentence, 
-    updateSentence, 
-    createSentence 
+import { ensureAdmin, requireAuthentication } from './passport.js';
+import {
+  createSentence,
+  deleteSentence,
+  deleteSimplifiedSentence,
+  getRandomSentence,
+  listAllSimplifiedSentences,
+  listSentences,
+  listSimplifiedSentences,
+  updateSentence
 } from './sentences.js';
 import { deleteUser, listUsers, loginRoute, registerUser, showCurrentUser } from './users.js';
-import { ensureAdmin, requireAuthentication } from './passport.js';
 
 
 export const router = express.Router();
@@ -28,6 +29,10 @@ export async function index(req, res) {
           },
         simplifiedSentences: {
           href: '/sentences/simplified',
+          methods: ['GET'],
+        },
+        allSimplifiedSentences: {
+          href: '/sentences/simplified/all',
           methods: ['GET'],
         },
       },
@@ -54,15 +59,15 @@ export async function index(req, res) {
         },
       },
       admin: {
-        sentences: {
+        sentencesAdmin: {
           href: '/admin/sentences',
           methods: ['POST', 'PATCH', 'DELETE'],
         },
-        simplifiedSentences: {
+        simplifiedSentencesAdmin: {
             href: '/admin/sentences/simplified',
             methods: ['DELETE'],
         },
-        users: {
+        usersAdmin: {
             href: '/admin/users',
             methods: ['DELETE'],
         },
@@ -75,6 +80,7 @@ router.get('/', index);
 router.get('/sentences', catchErrors(listSentences));
 router.get('/sentences/sentence', catchErrors(getRandomSentence));
 router.get('/sentences/simplified', catchErrors(listSimplifiedSentences));
+router.get('/sentences/simplified/all', catchErrors(listAllSimplifiedSentences));
 
 //User routes
 router.get('/users', catchErrors(listUsers));
@@ -82,13 +88,13 @@ router.get('/users/me', requireAuthentication, catchErrors(showCurrentUser));
 router.post('/users/register', catchErrors(registerUser));
 router.post('/users/login', catchErrors(loginRoute));
 router.get('/users/logout', async (req, res, next) => {
-    req.logout((err) => {
-      if (err) {
-        // return next(err);
-        return res.status(500).json({ error: err });
-      }
-      return res.status(200).json('logout successful');
-    });
+  req.logout((err) => {
+    if (err) {
+      // return next(err);
+      return res.status(500).json({ error: err });
+    }
+    return res.status(200).json('logout successful');
+  });
 });
 
 // Admin routes
