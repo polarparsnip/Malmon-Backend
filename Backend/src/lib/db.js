@@ -4,11 +4,9 @@ import { readFile } from 'fs/promises';
 import pg from 'pg';
 import xss from 'xss';
 
-
 dotenv.config();
 
 const { BCRYPT_ROUNDS: bcryptRounds = 11 } = process.env;
-
 
 const SCHEMA_FILE = './Backend/sql/schema.sql';
 const DROP_SCHEMA_FILE = './Backend/sql/drop.sql';
@@ -69,7 +67,7 @@ export async function dropSchema(dropFile = DROP_SCHEMA_FILE) {
 
 // Sentence Queries
 
-export async function listAllSimplifiedSentencesFromDb(verified=true) {
+export async function listAllSimplifiedSentencesFromDb(verified = true) {
   const q = `
     SELECT
       sentences.sentence, simplifiedSentences.simplifiedSentence
@@ -80,7 +78,7 @@ export async function listAllSimplifiedSentencesFromDb(verified=true) {
     AND sentences.id = simplifiedSentences.sentenceId
   `;
 
-  let result = await query(q, [verified]);
+  const result = await query(q, [verified]);
 
   if (result) {
     return result.rows;
@@ -89,7 +87,7 @@ export async function listAllSimplifiedSentencesFromDb(verified=true) {
   return null;
 }
 
-export async function listSentencesFromDb(offset=0, limit=10) {
+export async function listSentencesFromDb(offset = 0, limit = 10) {
   const q = `
     SELECT
       id, sentence, created, updated
@@ -98,7 +96,7 @@ export async function listSentencesFromDb(offset=0, limit=10) {
     OFFSET $1 LIMIT $2
   `;
 
-  let result = await query(q, [offset, limit]);
+  const result = await query(q, [offset, limit]);
 
   if (result) {
     return result.rows;
@@ -168,7 +166,8 @@ export async function deleteSentenceFromDb(sentenceId) {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    const deleteSimplified = 'DELETE FROM simplifiedSentences WHERE sentenceId = $1';
+    const deleteSimplified =
+      'DELETE FROM simplifiedSentences WHERE sentenceId = $1';
     await client.query(deleteSimplified, [sentenceId]);
 
     const deleteSentenceQuery = 'DELETE FROM sentences WHERE id = $1';
@@ -185,7 +184,7 @@ export async function deleteSentenceFromDb(sentenceId) {
   }
 }
 
-export async function listSimplifiedSentencesFromDb(offset=0, limit=10) {
+export async function listSimplifiedSentencesFromDb(offset = 0, limit = 10) {
   const q = `
     SELECT
       id, userId, sentenceId, simplifiedSentence, verified, created, updated
@@ -194,7 +193,7 @@ export async function listSimplifiedSentencesFromDb(offset=0, limit=10) {
     OFFSET $1 LIMIT $2
   `;
 
-  let result = await query(q, [offset, limit]);
+  const result = await query(q, [offset, limit]);
 
   if (result) {
     return result.rows;
@@ -233,13 +232,16 @@ export async function deleteSimplifiedSentenceFromDb(sentenceId) {
   return null;
 }
 
-
 // User queries
 
-export async function listUsersFromDb(order='default', offset=0, limit=10) {
+export async function listUsersFromDb(
+  order = 'default',
+  offset = 0,
+  limit = 10
+) {
   let q;
-  
-  if (order == 'sentences') {
+
+  if (order === 'sentences') {
     q = `
       SELECT
         id, name, username, admin, completedSentences, completedVerifications, created
@@ -248,7 +250,7 @@ export async function listUsersFromDb(order='default', offset=0, limit=10) {
       ORDER BY completedSentences DESC
       OFFSET $1 LIMIT $2
     `;
-  } else if (order == 'verifications') {
+  } else if (order === 'verifications') {
     q = `
       SELECT
         id, name, username, admin, completedSentences, completedVerifications, created
@@ -268,7 +270,7 @@ export async function listUsersFromDb(order='default', offset=0, limit=10) {
     `;
   }
 
-  let result = await query(q, [offset, limit]);
+  const result = await query(q, [offset, limit]);
 
   if (result) {
     return result.rows;
@@ -316,7 +318,10 @@ export async function comparePasswords(password, hash) {
 }
 
 export async function createUser(name, username, password) {
-  const hashedPassword = await bcrypt.hash(password, parseInt(bcryptRounds, 10));
+  const hashedPassword = await bcrypt.hash(
+    password,
+    parseInt(bcryptRounds, 10)
+  );
 
   const q = `
     INSERT INTO
@@ -349,7 +354,6 @@ export async function deleteUserFromDb(userId) {
   return null;
 }
 
-
 export async function conditionalUpdate(table, id, fields, values) {
   const filteredFields = fields.filter((i) => typeof i === 'string');
   const filteredValues = values.filter(
@@ -374,7 +378,7 @@ export async function conditionalUpdate(table, id, fields, values) {
       id = $1
     RETURNING *
     `;
-  
+
   const queryValues = [id].concat(filteredValues);
   const result = await query(q, queryValues);
 

@@ -10,10 +10,9 @@ import {
   getSimplifiedSentenceFromDb,
   listAllSimplifiedSentencesFromDb,
   listSentencesFromDb,
-  listSimplifiedSentencesFromDb
+  listSimplifiedSentencesFromDb,
 } from '../lib/db.js';
 import { isString } from '../lib/validation.js';
-
 
 export async function validateSentence(sentence) {
   if (typeof sentence !== 'string' || sentence.length < 15) {
@@ -24,10 +23,10 @@ export async function validateSentence(sentence) {
 }
 
 export async function listAllSimplifiedSentences(req, res) {
-  let { verified = true } = req.query;
+  const { verified = true } = req.query;
 
   const sentences = await listAllSimplifiedSentencesFromDb(verified);
-    
+
   if (!sentences) {
     return res.status(404).json({ error: 'unable to get sentences' });
   }
@@ -48,9 +47,9 @@ export async function listSentences(req, res) {
   let { offset = 0, limit = 10 } = req.query;
   offset = Number(offset);
   limit = Number(limit);
-  
+
   const sentences = await listSentencesFromDb(offset, limit);
-    
+
   if (!sentences) {
     return res.status(404).json({ error: 'unable to get sentences' });
   }
@@ -63,13 +62,13 @@ export async function listSentences(req, res) {
     },
     sentences,
   };
-  
+
   if (offset > 0) {
     result._links.prev = {
       href: `/sentences/?offset=${offset - limit}&limit=${limit}`,
     };
   }
-  
+
   if (sentences.length === limit) {
     result._links.next = {
       href: `/sentences/?offset=${Number(offset) + limit}&limit=${limit}`,
@@ -95,11 +94,11 @@ export async function createSentence(req, res) {
   }
 
   const createdSentence = await addSentenceToDb(sentence);
-  
+
   if (createdSentence) {
     return res.status(201).json(createdSentence);
   }
-  
+
   return res.status(500).json({ error: 'unable to create sentence' });
 }
 
@@ -125,33 +124,36 @@ export async function updateSentence(req, res) {
   if (!sentence) {
     return res.status(404).json({});
   }
-  
-  const fields = [
-    newSentence && isString(newSentence) ? 'sentence' : null
-  ];
-  
+
+  const fields = [newSentence && isString(newSentence) ? 'sentence' : null];
+
   const values = [
     newSentence && isString(newSentence) ? xss(newSentence) : null,
   ];
-  
-  const result = await conditionalUpdate('sentences', sentence.id, fields, values);
-  
+
+  const result = await conditionalUpdate(
+    'sentences',
+    sentence.id,
+    fields,
+    values
+  );
+
   if (!result) {
     return res.status(500).json({ error: 'unable to update sentence' });
   }
-  
+
   return res.status(200).json(result.rows[0]);
 }
 
 export async function deleteSentence(req, res) {
   const { id: userId } = req.user;
-  console.log(req.user)
+
   const { sentenceId } = req.params;
 
   const user = await findByUserId(userId);
 
   if (!user.admin) {
-      return res.status(401).json({ error: 'not admin' });
+    return res.status(401).json({ error: 'not admin' });
   }
 
   const sentence = await getSentenceFromDb(sentenceId);
@@ -163,19 +165,19 @@ export async function deleteSentence(req, res) {
   const result = await deleteSentenceFromDb(sentence.id);
 
   if (result) {
-      return res.status(200).json({});
+    return res.status(200).json({});
   }
-    
+
   return res.status(400).json({ error: 'unable to delete sentence' });
 }
 
 export async function getRandomSentence(req, res) {
   const randomSentence = await getRandomSentenceFromDb();
-  
+
   if (!randomSentence) {
     return res.status(404).json({ error: 'unable to get sentence' });
   }
-  
+
   return res.status(200).json(randomSentence);
 }
 
@@ -183,9 +185,12 @@ export async function listSimplifiedSentences(req, res) {
   let { offset = 0, limit = 10 } = req.query;
   offset = Number(offset);
   limit = Number(limit);
-  
-  const simplifiedSentences = await listSimplifiedSentencesFromDb(offset, limit);
-    
+
+  const simplifiedSentences = await listSimplifiedSentencesFromDb(
+    offset,
+    limit
+  );
+
   if (!simplifiedSentences) {
     return res.status(404).json({ error: 'unable to get sentences' });
   }
@@ -198,16 +203,18 @@ export async function listSimplifiedSentences(req, res) {
     },
     simplifiedSentences,
   };
-  
+
   if (offset > 0) {
     result._links.prev = {
       href: `/sentences/simplified/?offset=${offset - limit}&limit=${limit}`,
     };
   }
-  
+
   if (simplifiedSentences.length === limit) {
     result._links.next = {
-      href: `/sentences/simplified/?offset=${Number(offset) + limit}&limit=${limit}`,
+      href: `/sentences/simplified/?offset=${
+        Number(offset) + limit
+      }&limit=${limit}`,
     };
   }
 
@@ -219,9 +226,9 @@ export async function deleteSimplifiedSentence(req, res) {
   const { sentenceId } = req.params;
 
   const user = await findByUserId(userId);
-    
+
   if (!user.admin) {
-      return res.status(401).json({ error: 'not admin' });
+    return res.status(401).json({ error: 'not admin' });
   }
 
   const sentence = await getSimplifiedSentenceFromDb(sentenceId);
@@ -231,10 +238,12 @@ export async function deleteSimplifiedSentence(req, res) {
   }
 
   const result = await deleteSimplifiedSentenceFromDb(sentence.id);
-    
+
   if (result) {
-      return res.status(200).json({});
+    return res.status(200).json({});
   }
-    
-  return res.status(400).json({ error: 'unable to delete simplified sentence' });
+
+  return res
+    .status(400)
+    .json({ error: 'unable to delete simplified sentence' });
 }

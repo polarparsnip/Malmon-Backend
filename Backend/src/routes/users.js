@@ -5,7 +5,7 @@ import {
   deleteUserFromDb,
   findByUserId,
   findByUsername,
-  listUsersFromDb
+  listUsersFromDb,
 } from '../lib/db.js';
 import { jwtOptions, tokenOptions } from './passport.js';
 
@@ -15,11 +15,11 @@ export async function listUsers(req, res) {
   limit = Number(limit);
 
   const users = await listUsersFromDb(order, offset, limit);
-    
+
   if (!users) {
     return res.status(404).json({ error: 'unable to list users' });
   }
-  
+
   const result = {
     _links: {
       self: {
@@ -28,33 +28,35 @@ export async function listUsers(req, res) {
     },
     users,
   };
-  
+
   if (offset > 0) {
     result._links.prev = {
       href: `/users/?order=${order}&offset=${offset - limit}&limit=${limit}`,
     };
   }
-  
+
   if (users.length === limit) {
     result._links.next = {
-      href: `/users/?order=${order}&offset=${Number(offset) + limit}&limit=${limit}`,
+      href: `/users/?order=${order}&offset=${
+        Number(offset) + limit
+      }&limit=${limit}`,
     };
   }
-  
+
   return res.status(200).json(result);
 }
 
 export async function loginRoute(req, res) {
   const { username, password = '' } = req.body;
-  
+
   const user = await findByUsername(username);
-  
+
   if (!user) {
     return res.status(401).json({ error: 'Invalid user/password' });
   }
-  
+
   const passwordIsCorrect = await comparePasswords(password, user.password);
-  
+
   if (passwordIsCorrect) {
     const payload = { id: user.id };
     const token = jwt.sign(payload, jwtOptions.secretOrKey, tokenOptions);
@@ -70,15 +72,15 @@ export async function loginRoute(req, res) {
 
 export async function showCurrentUser(req, res) {
   const { user: { id } = {} } = req;
-  
+
   const user = await findByUserId(id);
-  
+
   if (!user) {
     return res.status(404).json({ error: 'User not found' });
   }
-  
+
   delete user.password;
-  
+
   return res.json(user);
 }
 
@@ -87,7 +89,11 @@ export async function validateUser(name, username, password) {
     return 'Skrá þarf nafn. Lágmark 2 stafir og hámark 64 stafir';
   }
 
-  if (typeof username !== 'string' || username.length < 2 || username.length > 64) {
+  if (
+    typeof username !== 'string' ||
+    username.length < 2 ||
+    username.length > 64
+  ) {
     return 'Skrá þarf notendanafn. Lágmark 2 stafir og hámark 64 stafir';
   }
 
@@ -101,7 +107,11 @@ export async function validateUser(name, username, password) {
     return 'Notendanafn er þegar skráð';
   }
 
-  if (typeof password !== 'string' || password.length < 3 || username.length > 256) {
+  if (
+    typeof password !== 'string' ||
+    password.length < 3 ||
+    username.length > 256
+  ) {
     return 'Skrá þarf lykilorð. Lágmark 3 stafir';
   }
 
@@ -120,9 +130,9 @@ export async function registerUser(req, res) {
   const user = await createUser(name, username, password);
 
   if (!user) {
-      return res.status(400).json({ error: 'could not create user' });
+    return res.status(400).json({ error: 'could not create user' });
   }
-  
+
   delete user.password;
 
   return res.status(201).json(user);
@@ -133,7 +143,7 @@ export async function deleteUser(req, res) {
   const { userId: userToBeDeletedId } = req.params;
 
   const user = await findByUserId(userId);
-    
+
   if (!user.admin) {
     return res.status(401).json({ error: 'not admin' });
   }
@@ -145,11 +155,10 @@ export async function deleteUser(req, res) {
   }
 
   const result = await deleteUserFromDb(userToBeDeleted.id);
-    
+
   if (result) {
     return res.status(200).json({});
   }
-    
+
   return res.status(400).json({ error: 'unable to delete user' });
 }
-  
