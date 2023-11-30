@@ -1,17 +1,12 @@
 {
-  "name": "maltaekni",
+  "name": "maltaekni_backend",
   "version": "1.0.0",
   "description": "",
-  "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev:backend": "dotenv -e .env -- nodemon ./Backend/src/app.js",
-    "dev:frontend": "dotenv -e .env -- nodemon ./Frontend/src/app.js",
-    "dev": "concurrently npm:dev:*",
-    "start:backend": "dotenv -e .env node ./Backend/src/app.js",
-    "start:frontend": "dotenv -e .env node ./Frontend/src/app.js",
-    "start": "concurrently npm:start:*",
-    "setup": "dotenv -e .env node ./Backend/src/setup.js",
+    "dev": "dotenv -e .env -- nodemon ./src/app.js",
+    "start": "dotenv -e .env node ./src/app.js",
+    "setup": "dotenv -e .env node ./src/setup.js",
     "lint": "eslint ./**/*.js"
   },
   "keywords": [],
