@@ -10,7 +10,6 @@ node_modules
 dist
 *.log
 .vscode
-Backend/sql/insert.sql
 
 # debug
 npm-debug.log*

@@ -3,12 +3,16 @@ import { catchErrors } from '../lib/catch-errors.js';
 import { ensureAdmin, requireAuthentication } from './passport.js';
 import {
   createSentence,
+  createSimplifiedSentence,
   deleteSentence,
   deleteSimplifiedSentence,
   getRandomSentence,
+  getRandomSimplifiedSentence,
   listAllSimplifiedSentences,
   listSentences,
   listSimplifiedSentences,
+  setSentenceSimplified,
+  setSentenceVerified,
   updateSentence,
 } from './sentences.js';
 import {
@@ -17,6 +21,7 @@ import {
   loginRoute,
   registerUser,
   showCurrentUser,
+  updateUser,
 } from './users.js';
 
 export const router = express.Router();
@@ -24,18 +29,6 @@ export const router = express.Router();
 export async function index(req, res) {
   return res.json({
     sentences: {
-      sentences: {
-        href: '/sentences',
-        methods: ['GET'],
-      },
-      sentence: {
-        href: '/sentences/sentence',
-        methods: ['GET'],
-      },
-      simplifiedSentences: {
-        href: '/sentences/simplified',
-        methods: ['GET'],
-      },
       allSimplifiedSentences: {
         href: '/sentences/simplified/all',
         methods: ['GET'],
@@ -45,6 +38,10 @@ export async function index(req, res) {
       users: {
         href: '/users',
         methods: ['GET'],
+      },
+      user: {
+        href: '/users/:userId',
+        methods: ['PATCH'],
       },
       me: {
         href: '/users/me',
@@ -62,36 +59,64 @@ export async function index(req, res) {
         href: '/users/logout',
         methods: ['GET'],
       },
+      randomSentence: {
+        href: '/users/sentences/sentence',
+        methods: ['GET'],
+      },
+      sentence: {
+        href: '/users/sentences/:sentenceId',
+        methods: ['PATCH'],
+      },
+      simplifiedSentences: {
+        href: '/users/sentences/simplified',
+        methods: ['POST'],
+      },
+      randomSimplifiedSentence: {
+        href: '/users/sentences/simplified/sentence',
+        methods: ['GET'],
+      },
+      simplifiedSentence: {
+        href: '/users/sentences/simplified/:sentenceId',
+        methods: ['PATCH'],
+      },
     },
     admin: {
-      sentencesAdmin: {
+      sentences: {
         href: '/admin/sentences',
-        methods: ['POST', 'PATCH', 'DELETE'],
+        methods: ['GET', 'POST'],
       },
-      simplifiedSentencesAdmin: {
+      sentence: {
+        href: '/admin/sentences/:sentenceId',
+        methods: ['PATCH', 'DELETE'],
+      },
+      simplifiedSentences: {
         href: '/admin/sentences/simplified',
+        methods: ['GET'],
+      },
+      simplifiedSentence: {
+        href: '/admin/sentences/simplified/:sentenceId',
         methods: ['DELETE'],
       },
-      usersAdmin: {
-        href: '/admin/users',
+      user: {
+        href: '/admin/users/:userId',
         methods: ['DELETE'],
       },
     },
   });
 }
 
-// Sentences routes
+// Index
 router.get('/', index);
-router.get('/sentences', catchErrors(listSentences));
-router.get('/sentences/sentence', catchErrors(getRandomSentence));
-router.get('/sentences/simplified', catchErrors(listSimplifiedSentences));
+
+// Sentences routes
 router.get(
   '/sentences/simplified/all',
   catchErrors(listAllSimplifiedSentences)
 );
 
 // User routes
-router.get('/users', catchErrors(listUsers));
+router.get('/users', requireAuthentication, catchErrors(listUsers));
+router.patch('/users/:userId', requireAuthentication, catchErrors(updateUser));
 router.get('/users/me', requireAuthentication, catchErrors(showCurrentUser));
 router.post('/users/register', catchErrors(registerUser));
 router.post('/users/login', catchErrors(loginRoute));
@@ -104,8 +129,39 @@ router.get('/users/logout', async (req, res) => {
     return res.status(200).json('logout successful');
   });
 });
+router.get(
+  '/users/sentences/sentence',
+  requireAuthentication,
+  catchErrors(getRandomSentence)
+);
+router.patch(
+  '/users/sentences/:sentenceId',
+  requireAuthentication,
+  catchErrors(setSentenceSimplified)
+);
+router.post(
+  '/users/sentences/simplified',
+  requireAuthentication,
+  catchErrors(createSimplifiedSentence)
+);
+router.get(
+  '/users/sentences/simplified/sentence',
+  requireAuthentication,
+  catchErrors(getRandomSimplifiedSentence)
+);
+router.patch(
+  '/users/sentences/simplified/:sentenceId',
+  requireAuthentication,
+  catchErrors(setSentenceVerified)
+);
 
 // Admin routes
+router.get(
+  '/admin/sentences',
+  requireAuthentication,
+  ensureAdmin,
+  catchErrors(listSentences)
+);
 router.post(
   '/admin/sentences',
   requireAuthentication,
@@ -124,14 +180,18 @@ router.delete(
   ensureAdmin,
   catchErrors(deleteSentence)
 );
-
+router.get(
+  '/admin/sentences/simplified',
+  requireAuthentication,
+  ensureAdmin,
+  catchErrors(listSimplifiedSentences)
+);
 router.delete(
   '/admin/sentences/simplified/:sentenceId',
   requireAuthentication,
   ensureAdmin,
   catchErrors(deleteSimplifiedSentence)
 );
-
 router.delete(
   '/admin/users/:userId',
   requireAuthentication,

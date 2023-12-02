@@ -2,7 +2,8 @@ import passport from 'passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { findByUserId } from '../lib/db.js';
 
-const { JWT_SECRET: jwtSecret, TOKEN_LIFETIME: tokenLifetime = 3600 } = process.env;
+const { JWT_SECRET: jwtSecret, TOKEN_LIFETIME: tokenLifetime = 3600 } =
+  process.env;
 
 if (!jwtSecret) {
   console.error('Vantar .env gildi');
@@ -27,7 +28,6 @@ export function ensureAdmin(req, res, next) {
 
   const title = 'Síða fannst ekki';
   return res.status(404).json({ error: title });
-
 }
 
 export function requireAuthentication(req, res, next) {
@@ -35,7 +35,7 @@ export function requireAuthentication(req, res, next) {
     if (err) {
       return next(err);
     }
-    
+
     if (!user) {
       const error =
         info.name === 'TokenExpiredError' ? 'expired token' : 'invalid token';
@@ -43,12 +43,15 @@ export function requireAuthentication(req, res, next) {
       return res.status(401).json({ error });
     }
 
+    const userInfo = user;
+    delete userInfo.password;
+
     // Látum notanda vera aðgengilegan í rest af middlewares
-    req.user = user;
+    req.user = userInfo;
+
     return next();
   })(req, res, next);
 }
-
 
 export const tokenOptions = { expiresIn: parseInt(tokenLifetime, 10) };
 

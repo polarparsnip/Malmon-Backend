@@ -8,8 +8,8 @@ dotenv.config();
 
 const { BCRYPT_ROUNDS: bcryptRounds = 11 } = process.env;
 
-const SCHEMA_FILE = './Backend/sql/schema.sql';
-const DROP_SCHEMA_FILE = './Backend/sql/drop.sql';
+const SCHEMA_FILE = 'sql/schema.sql';
+const DROP_SCHEMA_FILE = 'sql/drop.sql';
 
 const { DATABASE_URL: connectionString, NODE_ENV: nodeEnv = 'development' } =
   process.env;
@@ -75,7 +75,8 @@ export async function listAllSimplifiedSentencesFromDb(verified = true) {
       sentences, simplifiedSentences
     WHERE sentences.simplified = true
     AND simplifiedSentences.verified = $1
-    AND sentences.id = simplifiedSentences.sentenceId
+    AND sentences.id = simplifiedSentences.sentenceId 
+    LIMIT 9999
   `;
 
   const result = await query(q, [verified]);
@@ -90,7 +91,7 @@ export async function listAllSimplifiedSentencesFromDb(verified = true) {
 export async function listSentencesFromDb(offset = 0, limit = 10) {
   const q = `
     SELECT
-      id, sentence, created, updated
+      id, sentence, simplified, created, updated
     FROM
       sentences
     OFFSET $1 LIMIT $2
@@ -126,7 +127,7 @@ export async function getSentenceFromDb(sentenceId) {
 export async function getRandomSentenceFromDb() {
   const q = `
     SELECT 
-      * 
+      id, sentence 
     FROM 
       sentences 
     WHERE 
@@ -187,16 +188,47 @@ export async function deleteSentenceFromDb(sentenceId) {
 export async function listSimplifiedSentencesFromDb(offset = 0, limit = 10) {
   const q = `
     SELECT
-      id, userId, sentenceId, simplifiedSentence, verified, created, updated
+    simplifiedSentences.id, simplifiedSentences.userId, 
+    simplifiedSentences.simplifiedSentence, sentences.sentence as originalSentence, 
+    simplifiedSentences.verified, simplifiedSentences.created, simplifiedSentences.updated
     FROM
-      simplifiedSentences
+      simplifiedSentences, sentences
+    WHERE sentences.id = simplifiedSentences.sentenceId
     OFFSET $1 LIMIT $2
   `;
+
+  // SELECT
+  //   id, userId, sentenceId, simplifiedSentence, verified, created, updated
+  // FROM
+  //   simplifiedSentences
+  // OFFSET $1 LIMIT $2
 
   const result = await query(q, [offset, limit]);
 
   if (result) {
     return result.rows;
+  }
+
+  return null;
+}
+
+export async function addSimplifiedSentenceToDb(
+  simplifiedSentence,
+  sentenceId,
+  userId
+) {
+  const q = `
+    INSERT INTO simplifiedSentences
+      (simplifiedSentence, sentenceId, userId)
+    VALUES
+      ($1, $2, $3)
+    RETURNING id, simplifiedSentence, sentenceId, userId, created
+  `;
+
+  const result = await query(q, [simplifiedSentence, sentenceId, userId]);
+
+  if (result && result.rowCount === 1) {
+    return result.rows[0];
   }
 
   return null;
@@ -212,6 +244,29 @@ export async function getSimplifiedSentenceFromDb(sentenceId) {
   `;
 
   const result = await query(q, [sentenceId]);
+
+  if (result && result.rowCount === 1) {
+    return result.rows[0];
+  }
+
+  return null;
+}
+
+export async function getRandomSimplifiedSentenceFromDb() {
+  const q = `
+    SELECT 
+    sentences.sentence as originalsentence, simplifiedSentences.id, simplifiedSentences.simplifiedSentence 
+    FROM 
+      sentences, simplifiedSentences 
+    WHERE 
+      simplifiedSentences.sentenceId = sentences.id
+    AND
+    simplifiedSentences.verified = false
+    ORDER BY RANDOM()
+    LIMIT 1
+  `;
+
+  const result = await query(q);
 
   if (result && result.rowCount === 1) {
     return result.rows[0];

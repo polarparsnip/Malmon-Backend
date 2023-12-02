@@ -1,5 +1,5 @@
 import { readFile } from 'fs/promises';
-import { createSchema, dropSchema, end, query } from './lib/db.js';
+import { createSchema, dropSchema, end, query } from './db.js';
 
 async function create() {
   const drop = await dropSchema();
@@ -19,7 +19,7 @@ async function create() {
     console.info('schema not created');
   }
 
-  const data = await readFile('./Backend/sql/insert.sql');
+  const data = await readFile('sql/insert.sql');
   const insert = await query(data.toString('utf-8'));
 
   if (insert) {

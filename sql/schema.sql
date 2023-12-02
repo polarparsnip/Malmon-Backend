@@ -19,7 +19,7 @@ CREATE TABLE public.sentences (
 
 CREATE TABLE public.simplifiedSentences (
   id SERIAL PRIMARY KEY,
-  userId VARCHAR(64) NOT NULL UNIQUE,
+  userId INTEGER NOT NULL,
   sentenceId INTEGER,
   simplifiedSentence TEXT NOT NULL,
   verified BOOLEAN DEFAULT false,

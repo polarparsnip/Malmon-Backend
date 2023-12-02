@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import {
   comparePasswords,
+  conditionalUpdate,
   createUser,
   deleteUserFromDb,
   findByUserId,
@@ -161,4 +162,34 @@ export async function deleteUser(req, res) {
   }
 
   return res.status(400).json({ error: 'unable to delete user' });
+}
+
+export async function updateUser(req, res) {
+  // const { userId } = req.params;
+  const { id: userId } = req.user;
+  const { completedSentences, completedVerifications } = req.body;
+
+  const user = await findByUserId(userId);
+
+  if (!user) {
+    return res.status(404).json({});
+  }
+
+  const fields = [
+    completedSentences ? 'completedSentences' : null,
+    completedVerifications ? 'completedVerifications' : null,
+  ];
+
+  const values = [
+    completedSentences ? Number(user.completedsentences) + 1 : null,
+    completedVerifications ? Number(user.completedverifications) + 1 : null,
+  ];
+
+  const result = await conditionalUpdate('users', user.id, fields, values);
+
+  if (!result) {
+    return res.status(500).json({ error: 'unable to update user' });
+  }
+
+  return res.status(200).json(result.rows[0]);
 }
