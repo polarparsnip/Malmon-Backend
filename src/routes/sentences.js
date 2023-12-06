@@ -17,8 +17,8 @@ import {
 import { isString } from '../lib/validation.js';
 
 export async function validateSentence(sentence) {
-  if (typeof sentence !== 'string' || sentence.length < 15) {
-    return 'Setning þarf að vera lágmark 15 stafir';
+  if (typeof sentence !== 'string' || sentence.length < 10) {
+    return 'Setning þarf að vera lágmark 10 stafir';
   }
 
   return null;
@@ -95,7 +95,9 @@ export async function createSentence(req, res) {
     return res.status(400).json(validationMessage);
   }
 
-  const createdSentence = await addSentenceToDb(sentence);
+  const sanitizedSentence = isString(sentence) ? xss(sentence) : null;
+
+  const createdSentence = await addSentenceToDb(sanitizedSentence);
 
   if (createdSentence) {
     return res.status(201).json(createdSentence);
@@ -274,12 +276,20 @@ export async function listSimplifiedSentences(req, res) {
 }
 
 export async function createSimplifiedSentence(req, res) {
-  // console.log('body', req.body);
   const { simplifiedSentence, sentenceId } = req.body;
-  // console.log(simplifiedSentence, sentenceId, req.user.id);
+
+  const validationMessage = await validateSentence(simplifiedSentence);
+
+  if (validationMessage) {
+    return res.status(400).json(validationMessage);
+  }
+
+  const sanitizedSimplifiedSentence = isString(simplifiedSentence)
+    ? xss(simplifiedSentence)
+    : null;
 
   const createdSimplifiedSentence = await addSimplifiedSentenceToDb(
-    simplifiedSentence,
+    sanitizedSimplifiedSentence,
     sentenceId,
     req.user.id
   );

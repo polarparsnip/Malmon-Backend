@@ -314,6 +314,19 @@ export async function listUsersFromDb(
       ORDER BY completedVerifications DESC
       OFFSET $1 LIMIT $2
     `;
+  } else if (order === 'leaderboard') {
+    q = `
+      SELECT
+        id, name, username, admin, completedSentences, completedVerifications, created
+      FROM
+        users
+      ORDER BY
+        CASE
+          WHEN completedSentences < completedVerifications THEN completedSentences
+          ELSE completedVerifications
+        END DESC
+      OFFSET $1 LIMIT $2
+    `;
   } else {
     q = `
       SELECT

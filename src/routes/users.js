@@ -14,6 +14,7 @@ export async function listUsers(req, res) {
   let { order = 'default', offset = 0, limit = 10 } = req.query;
   offset = Number(offset);
   limit = Number(limit);
+  order = String(order);
 
   const users = await listUsersFromDb(order, offset, limit);
 
