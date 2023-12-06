@@ -172,8 +172,8 @@ export async function setSentenceSimplified(req, res) {
   return res.status(200).json(result.rows[0]);
 }
 
-export async function setSentenceVerified(req, res) {
-  const { sentenceId } = req.params;
+export async function updateSimplifiedSentence(req, res) {
+  const { sentenceId, action } = req.params;
 
   const simplifiedSentence = await getSimplifiedSentenceFromDb(sentenceId);
 
@@ -181,11 +181,15 @@ export async function setSentenceVerified(req, res) {
     return res.status(404).json({});
   }
 
+  const field = [action === 'verify' ? 'verified' : 'rejected'];
+
+  const value = [action === 'undo' ? 'false' : 'true'];
+
   const result = await conditionalUpdate(
     'simplifiedSentences',
     simplifiedSentence.id,
-    ['verified'],
-    ['true']
+    field,
+    value
   );
 
   if (!result) {

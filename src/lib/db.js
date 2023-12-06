@@ -190,7 +190,7 @@ export async function listSimplifiedSentencesFromDb(offset = 0, limit = 10) {
     SELECT
     simplifiedSentences.id, simplifiedSentences.userId, 
     simplifiedSentences.simplifiedSentence, sentences.sentence as originalSentence, 
-    simplifiedSentences.verified, simplifiedSentences.created, simplifiedSentences.updated
+    rejected, verified, simplifiedSentences.created, simplifiedSentences.updated
     FROM
       simplifiedSentences, sentences
     WHERE sentences.id = simplifiedSentences.sentenceId
@@ -261,7 +261,9 @@ export async function getRandomSimplifiedSentenceFromDb() {
     WHERE 
       simplifiedSentences.sentenceId = sentences.id
     AND
-    simplifiedSentences.verified = false
+      simplifiedSentences.verified = false
+    AND
+      simplifiedSentences.rejected = false
     ORDER BY RANDOM()
     LIMIT 1
   `;

@@ -12,8 +12,8 @@ import {
   listSentences,
   listSimplifiedSentences,
   setSentenceSimplified,
-  setSentenceVerified,
   updateSentence,
+  updateSimplifiedSentence,
 } from './sentences.js';
 import {
   deleteUser,
@@ -75,8 +75,8 @@ export async function index(req, res) {
         href: '/users/sentences/simplified/sentence',
         methods: ['GET'],
       },
-      simplifiedSentence: {
-        href: '/users/sentences/simplified/:sentenceId',
+      simplifiedSentenceAction: {
+        href: '/users/sentences/simplified/:sentenceId/:action',
         methods: ['PATCH'],
       },
     },
@@ -96,6 +96,10 @@ export async function index(req, res) {
       simplifiedSentence: {
         href: '/admin/sentences/simplified/:sentenceId',
         methods: ['DELETE'],
+      },
+      simplifiedSentenceAction: {
+        href: '/admin/sentences/simplified/:sentenceId/:action',
+        methods: ['PATCH'],
       },
       user: {
         href: '/admin/users/:userId',
@@ -150,9 +154,9 @@ router.get(
   catchErrors(getRandomSimplifiedSentence)
 );
 router.patch(
-  '/users/sentences/simplified/:sentenceId',
+  '/users/sentences/simplified/:sentenceId/:action',
   requireAuthentication,
-  catchErrors(setSentenceVerified)
+  catchErrors(updateSimplifiedSentence)
 );
 
 // Admin routes
@@ -191,6 +195,12 @@ router.delete(
   requireAuthentication,
   ensureAdmin,
   catchErrors(deleteSimplifiedSentence)
+);
+router.patch(
+  '/admin/sentences/simplified/:sentenceId/:action',
+  requireAuthentication,
+  ensureAdmin,
+  catchErrors(updateSimplifiedSentence)
 );
 router.delete(
   '/admin/users/:userId',
