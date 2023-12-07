@@ -16,6 +16,11 @@ import {
 } from '../lib/db.js';
 import { isString } from '../lib/validation.js';
 
+/**
+ * Athugar löggildi setningar
+ * @param {sentence} String setning sem á að athuga
+ * @returns {Promise<Express.Response>} Niðurstaða athugunar
+ */
 export async function validateSentence(sentence) {
   if (typeof sentence !== 'string' || sentence.length < 10) {
     return 'Setning þarf að vera lágmark 10 stafir';
@@ -24,6 +29,11 @@ export async function validateSentence(sentence) {
   return null;
 }
 
+/**
+ * Sækir allar einfaldaðar setningar ásamt upprunalegum setningum
+ * @param {req, res}
+ * @returns {Promise<Express.Response>} Niðurstaða
+ */
 export async function listAllSimplifiedSentences(req, res) {
   const { verified = true } = req.query;
 
@@ -45,6 +55,11 @@ export async function listAllSimplifiedSentences(req, res) {
   return res.status(200).json(result);
 }
 
+/**
+ * Sækir lista yfir setningar
+ * @param {req, res}
+ * @returns {Promise<Express.Response>} Niðurstaða
+ */
 export async function listSentences(req, res) {
   let { offset = 0, limit = 10 } = req.query;
   offset = Number(offset);
@@ -80,6 +95,11 @@ export async function listSentences(req, res) {
   return res.status(200).json(result);
 }
 
+/**
+ * Býr til setningu
+ * @param {req, res}
+ * @returns {Promise<Express.Response>} Niðurstaða
+ */
 export async function createSentence(req, res) {
   const { id: userId } = req.user;
   const user = await findByUserId(userId);
@@ -106,6 +126,11 @@ export async function createSentence(req, res) {
   return res.status(500).json({ error: 'unable to create sentence' });
 }
 
+/**
+ * Uppfærir setningu
+ * @param {req, res}
+ * @returns {Promise<Express.Response>} Niðurstaða
+ */
 export async function updateSentence(req, res) {
   const { sentenceId } = req.params;
   const { id: userId } = req.user;
@@ -149,6 +174,11 @@ export async function updateSentence(req, res) {
   return res.status(200).json(result.rows[0]);
 }
 
+/**
+ * Setur setningu sem að hún hafi veri einfölduð
+ * @param {req, res}
+ * @returns {Promise<Express.Response>} Niðurstaða
+ */
 export async function setSentenceSimplified(req, res) {
   const { sentenceId } = req.params;
 
@@ -172,6 +202,11 @@ export async function setSentenceSimplified(req, res) {
   return res.status(200).json(result.rows[0]);
 }
 
+/**
+ * Uppfærir einfaldaða setningu
+ * @param {req, res}
+ * @returns {Promise<Express.Response>} Niðurstaða
+ */
 export async function updateSimplifiedSentence(req, res) {
   const { sentenceId, action } = req.params;
 
@@ -201,6 +236,11 @@ export async function updateSimplifiedSentence(req, res) {
   return res.status(200).json(result.rows[0]);
 }
 
+/**
+ * Eyðir setningu
+ * @param {req, res}
+ * @returns {Promise<Express.Response>} Niðurstaða
+ */
 export async function deleteSentence(req, res) {
   const { id: userId } = req.user;
 
@@ -227,6 +267,11 @@ export async function deleteSentence(req, res) {
   return res.status(400).json({ error: 'unable to delete sentence' });
 }
 
+/**
+ * Sækir handahófskennda setningu
+ * @param {req, res}
+ * @returns {Promise<Express.Response>} Niðurstaða
+ */
 export async function getRandomSentence(req, res) {
   const randomSentence = await getRandomSentenceFromDb();
 
@@ -237,6 +282,11 @@ export async function getRandomSentence(req, res) {
   return res.status(200).json(randomSentence);
 }
 
+/**
+ * Sækir lista yfir einfölduðum setningum
+ * @param {req, res}
+ * @returns {Promise<Express.Response>} Niðurstaða
+ */
 export async function listSimplifiedSentences(req, res) {
   let { offset = 0, limit = 10 } = req.query;
   offset = Number(offset);
@@ -279,6 +329,11 @@ export async function listSimplifiedSentences(req, res) {
   return res.status(200).json(result);
 }
 
+/**
+ * Býr til nýja einfaldaða setningu
+ * @param {req, res}
+ * @returns {Promise<Express.Response>} Niðurstaða
+ */
 export async function createSimplifiedSentence(req, res) {
   const { simplifiedSentence, sentenceId } = req.body;
 
@@ -307,6 +362,11 @@ export async function createSimplifiedSentence(req, res) {
     .json({ error: 'unable to create simplified sentence' });
 }
 
+/**
+ * Eyðir einfaldri setningu
+ * @param {req, res}
+ * @returns {Promise<Express.Response>} Niðurstaða
+ */
 export async function deleteSimplifiedSentence(req, res) {
   const { id: userId } = req.user;
   const { sentenceId } = req.params;
@@ -334,6 +394,11 @@ export async function deleteSimplifiedSentence(req, res) {
     .json({ error: 'unable to delete simplified sentence' });
 }
 
+/**
+ * Sækir handahófskennda einfaldaða setningu
+ * @param {req, res}
+ * @returns {Promise<Express.Response>} Niðurstaða
+ */
 export async function getRandomSimplifiedSentence(req, res) {
   const randomSimplifiedSentence = await getRandomSimplifiedSentenceFromDb();
 

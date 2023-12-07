@@ -10,6 +10,11 @@ import {
 } from '../lib/db.js';
 import { jwtOptions, tokenOptions } from './passport.js';
 
+/**
+ * Sækir lista yfir notendur
+ * @param {req, res}
+ * @returns {Promise<Express.Response>} Listi yfir notendur
+ */
 export async function listUsers(req, res) {
   let { order = 'default', offset = 0, limit = 10 } = req.query;
   offset = Number(offset);
@@ -48,6 +53,11 @@ export async function listUsers(req, res) {
   return res.status(200).json(result);
 }
 
+/**
+ * Skráir inn notanda
+ * @param {req, res}
+ * @returns {Promise<Express.Response>} Niðurstaða Innskráningar
+ */
 export async function loginRoute(req, res) {
   const { username, password = '' } = req.body;
 
@@ -72,6 +82,11 @@ export async function loginRoute(req, res) {
   return res.status(401).json({ error: 'Invalid user/password' });
 }
 
+/**
+ * Sýnir núverandi notanda
+ * @param {req, res}
+ * @returns {Promise<Express.Response>} Niðurstaða
+ */
 export async function showCurrentUser(req, res) {
   const { user: { id } = {} } = req;
 
@@ -86,6 +101,12 @@ export async function showCurrentUser(req, res) {
   return res.json(user);
 }
 
+/**
+ * Athugar í nýskráningu hvort gildi notanda séu lögleg
+ * @param {name, username, password}
+ * nafn, notandanafn, og lykilorð sem notandi vill nota
+ * @returns {String} Niðurstaða athugunar
+ */
 export async function validateUser(name, username, password) {
   if (typeof name !== 'string' || name.length < 2 || username.length > 64) {
     return 'Skrá þarf nafn. Lágmark 2 stafir og hámark 64 stafir';
@@ -120,6 +141,11 @@ export async function validateUser(name, username, password) {
   return null;
 }
 
+/**
+ * Nýskráir notanda
+ * @param {req, res}
+ * @returns {Promise<Express.Response>} Niðurstaða Nýskráningar
+ */
 export async function registerUser(req, res) {
   const { name, username, password } = req.body;
 
@@ -140,6 +166,11 @@ export async function registerUser(req, res) {
   return res.status(201).json(user);
 }
 
+/**
+ * Eyðir notanda
+ * @param {req, res}
+ * @returns {Promise<Express.Response>} Niðurstaða eyðslunnar
+ */
 export async function deleteUser(req, res) {
   const { id: userId } = req.user;
   const { userId: userToBeDeletedId } = req.params;
@@ -165,6 +196,11 @@ export async function deleteUser(req, res) {
   return res.status(400).json({ error: 'unable to delete user' });
 }
 
+/**
+ * Uppfærir notanda
+ * @param {req, res}
+ * @returns {Promise<Express.Response>} Niðurstaða uppfærslunnar
+ */
 export async function updateUser(req, res) {
   // const { userId } = req.params;
   const { id: userId } = req.user;

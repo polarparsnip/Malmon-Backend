@@ -1,8 +1,8 @@
-# Máltækni Lokaverkefni - Bakendi
+# Málmon - Bakendi
 
 ## Setup
 
-Til að keyra síðu þarf .env skrá með þessum upplýsingum:
+Til að keyra server þarf .env skrá með þessum upplýsingum:
 DATABASE_URL=postgres://postgres:@localhost/maltaekni **slóð á gagnagrunn**\
 PGPASSWORD=password **þar sem password er lykilorð á gagnagrunn**\
 

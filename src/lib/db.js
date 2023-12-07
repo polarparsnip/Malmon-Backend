@@ -28,6 +28,11 @@ pool.on('error', (err) => {
   process.exit(-1);
 });
 
+/**
+ * Query fall fyrir gagnagrunnstengingu. Öll föll sem sækja úr gagnagrunni nota þetta fall
+ * @param {q, values} sql query texti, breytur fyrir query texta
+ * @returns {Promise<Array|Object|null>}
+ */
 export async function query(q, values = []) {
   let client;
   try {
@@ -49,16 +54,19 @@ export async function query(q, values = []) {
   }
 }
 
+// Stoppar postgres connection pool tengingu eftir uppsetningu á drop, schema, og insert
 export async function end() {
   await pool.end();
 }
 
+// Notar sql schema skjal til að setja upp gagnagrunn
 export async function createSchema(schemaFile = SCHEMA_FILE) {
   const data = await readFile(schemaFile);
 
   return query(data.toString('utf-8'));
 }
 
+// Eyðir schema í gagnagrunni. Notað á undan uppsetningu.
 export async function dropSchema(dropFile = DROP_SCHEMA_FILE) {
   const data = await readFile(dropFile);
 
@@ -67,6 +75,11 @@ export async function dropSchema(dropFile = DROP_SCHEMA_FILE) {
 
 // Sentence Queries
 
+/**
+ * Sækir allar einfaldaðar setningar úr gagnagrunni ásamt upprunalegum setningunum sem þær eru tengdar.
+ * @param {verified} boolean breyta sem segir hvort setningarnar þurfa að vera staðfestar eða ekki
+ * @returns {Promise<Array>} Einfaldaðar setningar
+ */
 export async function listAllSimplifiedSentencesFromDb(verified = true) {
   const q = `
     SELECT
@@ -88,6 +101,11 @@ export async function listAllSimplifiedSentencesFromDb(verified = true) {
   return null;
 }
 
+/**
+ * Sækir setningar úr gagnagrunni.
+ * @param {offset, limit} int tölur fyrir hliðrun og fjölda hluta sem á að sækja
+ * @returns {Promise<Array>} Setningar
+ */
 export async function listSentencesFromDb(offset = 0, limit = 10) {
   const q = `
     SELECT
@@ -106,6 +124,11 @@ export async function listSentencesFromDb(offset = 0, limit = 10) {
   return null;
 }
 
+/**
+ * Sækir setningu frá gagnagrunni
+ * @param {sentenceId} id auðkenni setningar
+ * @returns {Promise<Object|null>} Setning
+ */
 export async function getSentenceFromDb(sentenceId) {
   const q = `
     SELECT
@@ -124,6 +147,10 @@ export async function getSentenceFromDb(sentenceId) {
   return null;
 }
 
+/**
+ * Sækir handahófskennda setningu frá gagnagrunni
+ * @returns {Promise<Object|null>} Setning
+ */
 export async function getRandomSentenceFromDb() {
   const q = `
     SELECT 
@@ -145,6 +172,11 @@ export async function getRandomSentenceFromDb() {
   return null;
 }
 
+/**
+ * Setur setningu í gagnagrunn
+ * @param {sentence} setning sem á að setja
+ * @returns {Promise<Object|null>} Setningin sem var sett inn
+ */
 export async function addSentenceToDb(sentence) {
   const q = `
     INSERT INTO sentences
@@ -163,6 +195,11 @@ export async function addSentenceToDb(sentence) {
   return null;
 }
 
+/**
+ * Eyðir setningu frá gagnagrunni
+ * @param {sentenceId} id auðkenni setningar
+ * @returns {boolean} Eyðsla tókst eða misheppnaðist
+ */
 export async function deleteSentenceFromDb(sentenceId) {
   const client = await pool.connect();
   try {
@@ -185,6 +222,11 @@ export async function deleteSentenceFromDb(sentenceId) {
   }
 }
 
+/**
+ * Sækir einfaldaðar setningar frá gagnagrunni
+ * @param {offset, limit} int tölur fyrir hliðrun og fjölda hluta sem á að sækja
+ * @returns {Promise<Object|null>} Einfaldaðar setningar
+ */
 export async function listSimplifiedSentencesFromDb(offset = 0, limit = 10) {
   const q = `
     SELECT
@@ -212,6 +254,13 @@ export async function listSimplifiedSentencesFromDb(offset = 0, limit = 10) {
   return null;
 }
 
+/**
+ * Setur einfaldaða setningu í gagnagrunn
+ * @param {simplifiedSentence, sentenceId, userId}
+ * setning sem á að setja, auðkenni upprunalegu setningar,
+ * og auðkenni notanda sem sendi inn setningu
+ * @returns {Promise<Object|null>} Setningin sem var sett inn
+ */
 export async function addSimplifiedSentenceToDb(
   simplifiedSentence,
   sentenceId,
@@ -234,6 +283,11 @@ export async function addSimplifiedSentenceToDb(
   return null;
 }
 
+/**
+ * Sækir einfaldaða setningu frá gagnagrunni
+ * @param {sentenceId} id auðkenni setningar
+ * @returns {Promise<Object|null>} Einfölduð setning
+ */
 export async function getSimplifiedSentenceFromDb(sentenceId) {
   const q = `
     SELECT
@@ -252,6 +306,10 @@ export async function getSimplifiedSentenceFromDb(sentenceId) {
   return null;
 }
 
+/**
+ * Sækir handahófskennda einfaldaða setningu frá gagnagrunni
+ * @returns {Promise<Object|null>} Einfölduð setning
+ */
 export async function getRandomSimplifiedSentenceFromDb() {
   const q = `
     SELECT 
@@ -277,6 +335,11 @@ export async function getRandomSimplifiedSentenceFromDb() {
   return null;
 }
 
+/**
+ * Eyðir einfaldaða setningu frá gagnagrunni
+ * @param {sentenceId} id auðkenni setningar
+ * @returns {boolean} Eyðsla tókst eða misheppnaðist
+ */
 export async function deleteSimplifiedSentenceFromDb(sentenceId) {
   const q = 'DELETE FROM simplifiedSentences WHERE id = $1';
 
@@ -286,11 +349,17 @@ export async function deleteSimplifiedSentenceFromDb(sentenceId) {
     return true;
   }
 
-  return null;
+  return false;
 }
 
 // User queries
 
+/**
+ * Sækir notendur úr gagnagrunni.
+ * @param {order, offset, limit} röðin á að sækja gögnin í
+ * og svo int tölur fyrir hliðrun og fjölda hluta sem á að sækja
+ * @returns {Promise<Array>} Notendur
+ */
 export async function listUsersFromDb(
   order = 'default',
   offset = 0,
@@ -349,6 +418,11 @@ export async function listUsersFromDb(
   return null;
 }
 
+/**
+ * Sækir notanda frá gagnagrunni eftir notandanafni
+ * @param {username} notandanafn
+ * @returns {Promise<Object|null>} Notandi
+ */
 export async function findByUsername(username) {
   const q = 'SELECT * FROM users WHERE username = $1';
 
@@ -361,6 +435,11 @@ export async function findByUsername(username) {
   return false;
 }
 
+/**
+ * Sækir notanda frá gagnagrunni eftir auðkenni
+ * @param {id} auðkenni notanda
+ * @returns {Promise<Object|null>} Notandi
+ */
 export async function findByUserId(id) {
   const q = 'SELECT * FROM users WHERE id = $1';
 
@@ -377,6 +456,11 @@ export async function findByUserId(id) {
   return null;
 }
 
+/**
+ * Ber saman lykilorð og hashed lykilorð til að sjá hvort þau séu það saman
+ * @param {password, hasn} lykilorð og hashed lykilorð sem á að bera saman
+ * @returns {boolean} true ef lykilorð eru þau sömu, annars false
+ */
 export async function comparePasswords(password, hash) {
   try {
     return await bcrypt.compare(password, hash);
@@ -387,6 +471,12 @@ export async function comparePasswords(password, hash) {
   return false;
 }
 
+/**
+ * Setur notanda í gagnagrunn
+ * @param {name, username, password}
+ * nafn, notendanafn og lykilorð notanda sem á að búa til
+ * @returns {Promise<Object|null>} Notandinn sem var settur inn
+ */
 export async function createUser(name, username, password) {
   const hashedPassword = await bcrypt.hash(
     password,
@@ -412,6 +502,11 @@ export async function createUser(name, username, password) {
   return null;
 }
 
+/**
+ * Eyðir notanda frá gagnagrunni
+ * @param {userId} id auðkenni notanda
+ * @returns {boolean} Eyðsla tókst eða misheppnaðist
+ */
 export async function deleteUserFromDb(userId) {
   const q = 'DELETE FROM users WHERE id = $1';
 
@@ -421,9 +516,15 @@ export async function deleteUserFromDb(userId) {
     return true;
   }
 
-  return null;
+  return false;
 }
 
+/**
+ * Uppfærir hlut í töflu, notað með PATCH uppfærslum
+ * @param {table, id, fields, values}
+ * tafla sem á að uppfæra, auðkenni hluts, dálkar sem á að uppfæra, nýu dálka gildin
+ * @returns {Object} Hluturinn sem var uppfærður
+ */
 export async function conditionalUpdate(table, id, fields, values) {
   const filteredFields = fields.filter((i) => typeof i === 'string');
   const filteredValues = values.filter(

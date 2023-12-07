@@ -1,6 +1,7 @@
 import { readFile } from 'fs/promises';
 import { createSchema, dropSchema, end, query } from './lib/db.js';
 
+// Setur upp postgres gagnagrunn skv drop, scheme, og insert
 async function create() {
   const drop = await dropSchema();
 
