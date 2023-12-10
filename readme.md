@@ -5,8 +5,8 @@
 Til að keyra locally þarf fyrst að setja upp postgresql á tölvu.
 
 Svo til að keyra server í development þarf .env skrá með þessum upplýsingum:
-DATABASE_URL=postgres://postgres:@localhost/maltaekni **slóð á gagnagrunn**\
-PGPASSWORD=password **þar sem password er lykilorð á gagnagrunn**\
+DATABASE_URL=postgres://postgres:@localhost/maltaekni **# slóð á gagnagrunn**\
+PGPASSWORD=password **# þar sem password er lykilorð á gagnagrunn**\
 
 Svo keyra eftirfarandi skipanir:
 
