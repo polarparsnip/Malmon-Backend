@@ -10,7 +10,7 @@ if (!jwtSecret) {
   process.exit(1);
 }
 
-// Hjálpar að athuga innskræaningu með að athuga hvort að notandi sé til
+// Hjálpar að athuga innskráningu með að athuga hvort að notandi sé til
 async function strat(data, next) {
   // fáum id gegnum data sem geymt er í token
   const user = await findByUserId(data.id);
@@ -48,10 +48,10 @@ export function requireAuthentication(req, res, next) {
     }
 
     if (!user) {
-      const error =
+      const errorMessage =
         info.name === 'TokenExpiredError' ? 'expired token' : 'invalid token';
 
-      return res.status(401).json({ error });
+      return res.status(401).json({ error: errorMessage });
     }
 
     const userInfo = user;

@@ -112,7 +112,7 @@ export async function createSentence(req, res) {
   const validationMessage = await validateSentence(sentence);
 
   if (validationMessage) {
-    return res.status(400).json(validationMessage);
+    return res.status(400).json({ error: validationMessage });
   }
 
   const sanitizedSentence = isString(sentence) ? xss(sentence) : null;
@@ -145,7 +145,7 @@ export async function updateSentence(req, res) {
   const validationMessage = await validateSentence(newSentence);
 
   if (validationMessage) {
-    return res.status(400).json(validationMessage);
+    return res.status(400).json({ error: validationMessage });
   }
 
   const sentence = await getSentenceFromDb(sentenceId);
@@ -185,7 +185,7 @@ export async function setSentenceSimplified(req, res) {
   const sentence = await getSentenceFromDb(sentenceId);
 
   if (!sentence) {
-    return res.status(404).json({});
+    return res.status(404).json({ error: 'original sentence not found' });
   }
 
   const result = await conditionalUpdate(
@@ -213,7 +213,7 @@ export async function updateSimplifiedSentence(req, res) {
   const simplifiedSentence = await getSimplifiedSentenceFromDb(sentenceId);
 
   if (!simplifiedSentence) {
-    return res.status(404).json({});
+    return res.status(404).json({ error: 'simplified sentence not found' });
   }
 
   const field = [action === 'verify' ? 'verified' : 'rejected'];
@@ -255,7 +255,7 @@ export async function deleteSentence(req, res) {
   const sentence = await getSentenceFromDb(sentenceId);
 
   if (!sentence) {
-    return res.status(404).json({});
+    return res.status(404).json({ error: 'sentence not found' });
   }
 
   const result = await deleteSentenceFromDb(sentence.id);
@@ -340,7 +340,7 @@ export async function createSimplifiedSentence(req, res) {
   const validationMessage = await validateSentence(simplifiedSentence);
 
   if (validationMessage) {
-    return res.status(400).json(validationMessage);
+    return res.status(400).json({ error: validationMessage });
   }
 
   const sanitizedSimplifiedSentence = isString(simplifiedSentence)
@@ -377,13 +377,13 @@ export async function deleteSimplifiedSentence(req, res) {
     return res.status(401).json({ error: 'not admin' });
   }
 
-  const sentence = await getSimplifiedSentenceFromDb(sentenceId);
+  const simplifiedSentence = await getSimplifiedSentenceFromDb(sentenceId);
 
-  if (!sentence) {
-    return res.status(404).json({});
+  if (!simplifiedSentence) {
+    return res.status(404).json({ error: 'simplified sentence not found' });
   }
 
-  const result = await deleteSimplifiedSentenceFromDb(sentence.id);
+  const result = await deleteSimplifiedSentenceFromDb(simplifiedSentence.id);
 
   if (result) {
     return res.status(200).json({});

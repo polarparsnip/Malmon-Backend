@@ -64,7 +64,7 @@ export async function loginRoute(req, res) {
   const user = await findByUsername(username);
 
   if (!user) {
-    return res.status(401).json({ error: 'Invalid user/password' });
+    return res.status(401).json({ error: 'Ógilt notandanafn/lykilorð' });
   }
 
   const passwordIsCorrect = await comparePasswords(password, user.password);
@@ -152,7 +152,7 @@ export async function registerUser(req, res) {
   const validationMessage = await validateUser(name, username, password);
 
   if (validationMessage) {
-    return res.status(400).json(validationMessage);
+    return res.status(400).json({ error: validationMessage });
   }
 
   const user = await createUser(name, username, password);
@@ -184,7 +184,7 @@ export async function deleteUser(req, res) {
   const userToBeDeleted = await findByUserId(userToBeDeletedId);
 
   if (!userToBeDeleted) {
-    return res.status(404).json({});
+    return res.status(404).json({ error: 'user not found' });
   }
 
   const result = await deleteUserFromDb(userToBeDeleted.id);
@@ -209,7 +209,7 @@ export async function updateUser(req, res) {
   const user = await findByUserId(userId);
 
   if (!user) {
-    return res.status(404).json({});
+    return res.status(404).json({ error: 'user not found' });
   }
 
   const fields = [
